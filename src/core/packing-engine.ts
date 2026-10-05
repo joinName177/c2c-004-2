@@ -35,15 +35,18 @@ function candidatePoints(placements: Placement[]) {
   return points.sort((a, b) => a.z - b.z || a.y - b.y || a.x - b.x);
 }
 
-export function packItems(suitcase: Suitcase, items: PackingItem[], mode: PlanMode): PackingPlan {
-  const placements: Placement[] = [];
+export function packItems(suitcase: Suitcase, items: PackingItem[], mode: PlanMode, fixed: Placement[] = []): PackingPlan {
+  const placements: Placement[] = [...fixed];
   const unplaced: PackingPlan['unplaced'] = [];
   const capacity = suitcaseVolume(suitcase) * RESERVE[mode];
   const maxWeight = suitcase.maxWeight * RESERVE[mode];
-  let totalWeight = 0;
-  let usedVolume = 0;
+  const fixedIds = new Set(fixed.map((placement) => placement.itemId));
+  const byId = new Map(items.map((item) => [item.id, item]));
+  let totalWeight = fixed.reduce((sum, placement) => sum + (byId.get(placement.itemId)?.weight ?? 0), 0);
+  let usedVolume = fixed.reduce((sum, placement) => sum + itemVolume(placement.dimensions), 0);
 
   for (const item of ordered(items, mode)) {
+    if (fixedIds.has(item.id)) continue;
     if ([item.length, item.width, item.height, item.weight].some((value) => !(value > 0))) {
       unplaced.push({ item, reason: '尺寸或重量无效' });
       continue;

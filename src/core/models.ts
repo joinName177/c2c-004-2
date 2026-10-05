@@ -25,13 +25,21 @@ export interface Placement {
 }
 
 export interface PackingPlan {
-  id: PlanMode;
+  id: PlanMode | 'manual';
   name: string;
   placements: Placement[];
   unplaced: Array<{ item: PackingItem; reason: string }>;
   totalWeight: number;
   usedVolume: number;
   capacityRatio: number;
+}
+
+export interface ManualPlacement extends Placement {
+  locked: boolean;
+}
+
+export interface ManualLayout {
+  placements: ManualPlacement[];
 }
 
 export interface Risk {
@@ -46,6 +54,7 @@ export interface PackingSnapshot {
   suitcase: Suitcase;
   items: PackingItem[];
   selectedPlan: PlanMode;
+  manual?: ManualLayout | null;
 }
 
 export function itemVolume(item: Dimensions): number {

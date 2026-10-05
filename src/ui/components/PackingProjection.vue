@@ -7,7 +7,8 @@ const colors = ['#df6d45', '#507d68', '#d8a84e', '#5978a7', '#9d6a83', '#6d7d86'
 const itemIndex = computed(() => new Map(props.items.map((item, index) => [item.id, index])));
 function styleFor(itemId: string, x: number, y: number, length: number, width: number) {
   const maxY = props.view === 'top' ? props.suitcase.width : props.suitcase.height;
-  return { left: `${x / props.suitcase.length * 100}%`, top: `${y / maxY * 100}%`, width: `${length / props.suitcase.length * 100}%`, height: `${width / maxY * 100}%`, background: colors[(itemIndex.value.get(itemId) ?? 0) % colors.length] };
+  const top = props.view === 'top' ? y / maxY : 1 - (y + width) / maxY;
+  return { left: `${x / props.suitcase.length * 100}%`, top: `${top * 100}%`, width: `${length / props.suitcase.length * 100}%`, height: `${width / maxY * 100}%`, background: colors[(itemIndex.value.get(itemId) ?? 0) % colors.length] };
 }
 </script>
 
