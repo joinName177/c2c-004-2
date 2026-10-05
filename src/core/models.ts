@@ -42,10 +42,27 @@ export interface Risk {
   itemId?: string;
 }
 
+export type PlacementViolation = 'out-of-bounds' | 'intersection' | 'unsupported' | 'dimensions-changed';
+
+export interface LockConflict {
+  itemId: string;
+  reasons: PlacementViolation[];
+}
+
+export interface WorkbenchState {
+  /** 锁定物品及其固定摆放，重新装箱时保持不动 */
+  locks: Record<string, Placement>;
+  /** 各方案下手动调整后的完整摆放（未调整的方案沿用自动结果） */
+  overrides: Partial<Record<PlanMode, Placement[]>>;
+  /** 导致锁定冲突的修改前箱体与物品，用于“取消修改”恢复原尺寸 */
+  pendingRevert: { suitcase: Suitcase; items: PackingItem[] } | null;
+}
+
 export interface PackingSnapshot {
   suitcase: Suitcase;
   items: PackingItem[];
   selectedPlan: PlanMode;
+  workbench: WorkbenchState;
 }
 
 export function itemVolume(item: Dimensions): number {

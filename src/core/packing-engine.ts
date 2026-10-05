@@ -36,6 +36,10 @@ function candidatePoints(placements: Placement[]) {
 }
 
 export function packItems(suitcase: Suitcase, items: PackingItem[], mode: PlanMode): PackingPlan {
+  return packWithLocks(suitcase, items, mode, {});
+}
+
+export function packWithLocks(suitcase: Suitcase, items: PackingItem[], mode: PlanMode, locks: Record<string, Placement> = {}): PackingPlan {
   const placements: Placement[] = [];
   const unplaced: PackingPlan['unplaced'] = [];
   const capacity = suitcaseVolume(suitcase) * RESERVE[mode];
@@ -43,7 +47,24 @@ export function packItems(suitcase: Suitcase, items: PackingItem[], mode: PlanMo
   let totalWeight = 0;
   let usedVolume = 0;
 
+  // 锁定物品按原位置落位，绝不被自动装箱挪动；失效的锁定由调用方先处理，这里兜底忽略
+  const lockedIds = new Set<string>();
+  for (const [itemId, lock] of Object.entries(locks)) {
+    const item = items.find((entry) => entry.id === itemId);
+    if (!item) continue;
+    const placement: Placement = { itemId, x: lock.x, y: lock.y, z: lock.z, dimensions: { ...lock.dimensions } };
+    const inBounds = placement.x + placement.dimensions.length <= suitcase.length
+      && placement.y + placement.dimensions.width <= suitcase.width
+      && placement.z + placement.dimensions.height <= suitcase.height;
+    if (!inBounds || placements.some((placed) => intersects(placement, placed))) continue;
+    placements.push(placement);
+    lockedIds.add(itemId);
+    totalWeight += item.weight;
+    usedVolume += itemVolume(placement.dimensions);
+  }
+
   for (const item of ordered(items, mode)) {
+    if (lockedIds.has(item.id)) continue;
     if ([item.length, item.width, item.height, item.weight].some((value) => !(value > 0))) {
       unplaced.push({ item, reason: '尺寸或重量无效' });
       continue;

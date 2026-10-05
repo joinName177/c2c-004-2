@@ -1,3 +1,4 @@
+import { emptyWorkbench } from './manual';
 import type { PackingItem, PackingSnapshot } from './models';
 
 const seed = (id: string, name: string, category: string, dimensions: [number, number, number], weight: number, priority: 1 | 2 | 3, mustHave = false, fragile = false): PackingItem => ({
@@ -8,6 +9,7 @@ export function createSampleSnapshot(): PackingSnapshot {
   return {
     suitcase: { length: 52, width: 35, height: 23, maxWeight: 10 },
     selectedPlan: 'comfort',
+    workbench: emptyWorkbench(),
     items: [
       seed('jacket', '轻薄外套', '衣物', [30, 24, 5], 0.65, 3, true),
       seed('shoes', '运动鞋', '鞋履', [31, 20, 12], 0.9, 3, true),
